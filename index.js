@@ -2,12 +2,28 @@ const cron = require('node-cron');
 const express = require('express');
 const fs = require('fs');
 const send = require('./send');
+const massive = require('massive');
+const bodyParser = require('body-parser');
 
-app = express();
+const { CONNECTION_STRING } = process.env;
 
-cron.schedule('* * * * *', function() {
-  send.nexmoJob();
-  console.log('running a task every minute');
+const app = express();
+
+app.use(bodyParser.json());
+
+massive(CONNECTION_STRING).then(db => {
+  app.set('db', db);
+  console.log('db connected');
 });
+
+(req, res) => {
+  const db = req.app.get('db');
+  const user = req.session.user.id;
+
+  db.get_rules(user).then(results => {
+    //   return res.status(201).send(results);
+    console.log(results);
+  });
+};
 
 app.listen(3128);
