@@ -18,9 +18,8 @@ massive(CONNECTION_STRING).then(db => {
 
 (req, res) => {
   const db = req.app.get('db');
-  const user = req.session.user.id;
 
-  db.get_rules(user).then(results => {
+  db.get_rules().then(results => {
     //   return res.status(201).send(results);
     console.log(results);
   });
