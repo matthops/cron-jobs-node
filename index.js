@@ -16,6 +16,8 @@ massive(CONNECTION_STRING).then(db => {
   console.log('db connected');
 });
 
+console.log('HITTING THE SERVER');
+
 (req, res) => {
   const db = req.app.get('db');
   console.log('HIT THE SERVER');
