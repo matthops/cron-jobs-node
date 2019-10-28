@@ -18,14 +18,9 @@ massive(CONNECTION_STRING).then(db => {
 
 console.log('HITTING THE SERVER');
 
-(req, res) => {
-  const db = req.app.get('db');
-  console.log('HIT THE SERVER');
-
-  db.get_rules().then(results => {
-    //   return res.status(201).send(results);
-    console.log(results);
-  });
-};
+db.get_rules().then(results => {
+  //   return res.status(201).send(results);
+  console.log(results);
+});
 
 app.listen(3128);
