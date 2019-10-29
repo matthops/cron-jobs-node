@@ -13,14 +13,14 @@ app.use(bodyParser.json());
 
 massive(CONNECTION_STRING).then(db => {
   app.set('db', db);
+  db.get_rules().then(results => {
+  //   return res.status(201).send(results);
+  console.log(results);
+});
+
   console.log('db connected');
 });
 
 console.log('HITTING THE SERVER');
-const db = req.app.get('db');
-db.get_rules().then(results => {
-  //   return res.status(201).send(results);
-  console.log(results);
-});
 
 app.listen(3128);
