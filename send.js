@@ -2,7 +2,7 @@ require('dotenv').config();
 const Nexmo = require('nexmo');
 
 module.exports = {
-  nexmoJob: () => {
+  nexmoJob: text => {
     const { NEXMO_API_KEY, NEXMO_API_SECRET } = process.env;
 
     const nexmo = new Nexmo({
@@ -12,7 +12,7 @@ module.exports = {
 
     const from = '18704068020';
     const to = '19253033344';
-    const text = 'Another New Test Message';
+    // const text = 'Another New Test Message';
 
     nexmo.message.sendSms(from, to, text, (err, responseData) => {
       if (err) {
