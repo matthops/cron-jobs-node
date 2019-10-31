@@ -37,7 +37,6 @@ const throttler = new SMSThrottler({
 });
 
 const from = NUMBER_FROM;
-const to = NUMBER_TO;
 
 function completed(err, result) {
   if (err) {
@@ -54,20 +53,29 @@ const getSum = (total, num) => {
 const app = express();
 
 app.use(bodyParser.json());
-let categoryArr = [];
 
 massive(CONNECTION_STRING).then(db => {
   app.set('db', db);
   console.log('db connected');
-  let objArr = [];
+  let dateObj = new Date();
+  const todaysDate = `${dateObj.getFullYear()}-${dateObj.getMonth() +
+    1}-${dateObj.getDate()}`;
+
+  let weekAgoDateObj = new Date(dateObj);
+  weekAgoDateObj.setDate(weekAgoDateObj.getDate() - 5);
+  let weekAgoDate = new Date(weekAgoDateObj);
+  const weekAgoDateString = `${weekAgoDate.getFullYear()}-${weekAgoDate.getMonth() +
+    1}-${weekAgoDate.getDate()}`;
 
   db.get_rules().then(results => {
-    results.forEach(rule => {
-      db.get_item(rule.user_id).then(response => {
+    results.forEach(user => {
+      const to = user.user_number;
+      const categoryArr = user.category['weekly'];
+      db.get_item(user.user_id).then(response => {
         client.getTransactions(
           response[0].access_token,
-          '2019-10-12',
-          '2019-10-25',
+          weekAgoDateString,
+          todaysDate,
           {
             count: 25,
             offset: 0
@@ -76,28 +84,34 @@ massive(CONNECTION_STRING).then(db => {
             if (err) {
               console.log('error', err);
             }
-            let transactions = response.transactions;
-            let countArr = [];
+            const transactionsArr = response.transactions;
+            let smsArr = [];
 
-            transactions.forEach(transaction => {
-              transaction.category.forEach(catArr =>
-                catArr.includes(rule.category)
-                  ? countArr.push(transaction.amount)
-                  : null
-              );
-            });
+            //foreach category in categoryArr
+            categoryArr.forEach(category => {
+              let countArr = [];
 
-            const text = `This week, you spent $${countArr
-              .reduce(getSum, 0)
-              .toLocaleString()} on ${rule.category}`;
-            console.log('texttexttext', text);
-            objArr.push({ from, to, text, callback: completed });
-            // console.log('OBJARROBJARROBJARR', objArr);
-            if (objArr.length === results.length) {
-              for (let i = 0; i < objArr.length; ++i) {
-                throttler.queue(objArr[i]);
+              // go through each position in each transaction's category array
+              transactionsArr.forEach(transaction => {
+                transaction.category.forEach(transactionCatArr =>
+                  // and see if each position in the transactions category array is equal to the category
+                  transactionCatArr.includes(category)
+                    ? countArr.push(transaction.amount)
+                    : null
+                );
+              });
+              const amount = countArr.reduce(getSum, 0).toLocaleString();
+              smsArr.push({ amount, category });
+              // console.log('smsArr', smsArr);
+              let text = 'You spent ';
+              if (smsArr.length === categoryArr.length) {
+                for (let i = 0; i < smsArr.length; ++i) {
+                  text += `$${smsArr[i].amount} on ${smsArr[i].category}. `;
+                }
+                console.log('TEXT', text);
+                throttler.queue({ from, to, text, callback: completed });
               }
-            }
+            });
           }
         );
       });
@@ -108,3 +122,8 @@ massive(CONNECTION_STRING).then(db => {
 console.log('HITTING THE SERVER');
 
 app.listen(3128, () => console.log('listening on port 3128'));
+
+// [{category: "Food", frequency: "weekly"},{category: "Shops", frequency: "weekly"},{category: "Restaurants", frequency: "weekly"}, {category: "Financial", frequency: "weekly"} ]
+
+// { weekly: ["Food", "Shops", "Restaurants", "Financial"] }
+// { "weekly": ["Gas Stations", "Services", "Religious", "Bank Fees"] }
