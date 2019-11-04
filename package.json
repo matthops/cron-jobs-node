@@ -16,6 +16,7 @@
     "express": "^4.17.1",
     "fs": "0.0.1-security",
     "massive": "^6.1.1",
+    "moment": "^2.24.0",
     "nexmo": "^2.5.1",
     "node-cron": "^2.0.3",
     "plaid": "^4.3.0"

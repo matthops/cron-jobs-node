@@ -31,3 +31,6 @@ module.exports = {
     });
   }
 };
+
+// 1	2	{ "weekly": ["Food", "Shops", "Restaurants", "Financial"] }	19253033344
+// 5	2	{ "weekly": ["Gas Stations", "Services", "Religious", "Bank Fees"] }	19253033344

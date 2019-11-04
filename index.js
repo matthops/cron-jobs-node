@@ -7,6 +7,7 @@ const nexmoController = require('./send.js');
 const SMSThrottler = require('./throttler');
 const Nexmo = require('nexmo');
 const plaid = require('plaid');
+const moment = require('moment');
 require('dotenv').config();
 
 const { CONNECTION_STRING, NEXMO_API_KEY, NEXMO_API_SECRET } = process.env;
@@ -50,6 +51,12 @@ const getSum = (total, num) => {
   return total + num;
 };
 
+const weekAgoDateString = moment()
+  .subtract(7, 'days')
+  .format('YYYY-MM-DD');
+const todaysDate = moment().format('YYYY-MM-DD');
+console.log('TODAY DATE', todaysDate, 'weekagoDate', weekAgoDateString);
+
 const app = express();
 
 app.use(bodyParser.json());
@@ -57,23 +64,14 @@ app.use(bodyParser.json());
 massive(CONNECTION_STRING).then(db => {
   app.set('db', db);
   console.log('db connected');
-  let dateObj = new Date();
-  const todaysDate = `${dateObj.getFullYear()}-${dateObj.getMonth() +
-    1}-${dateObj.getDate()}`;
-
-  let weekAgoDateObj = new Date(dateObj);
-  weekAgoDateObj.setDate(weekAgoDateObj.getDate() - 5);
-  let weekAgoDate = new Date(weekAgoDateObj);
-  const weekAgoDateString = `${weekAgoDate.getFullYear()}-${weekAgoDate.getMonth() +
-    1}-${weekAgoDate.getDate()}`;
 
   db.get_rules().then(results => {
     results.forEach(user => {
       const to = user.user_number;
       const categoryArr = user.category['weekly'];
-      db.get_item(user.user_id).then(response => {
+      db.get_item(user.user_id).then(results => {
         client.getTransactions(
-          response[0].access_token,
+          results[0].access_token,
           weekAgoDateString,
           todaysDate,
           {
